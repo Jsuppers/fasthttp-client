@@ -2,7 +2,7 @@ PROJECT_NAME := "fasthttp-client"
 
 .PHONY: build lint
 
-all: build
+all: build coverage
 
 generate:
 	@go get -v -d ./...

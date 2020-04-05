@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"log"
 	"math/rand"
 	"time"
 
@@ -21,32 +20,35 @@ type Request struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
-func Send(address string, contentID int) {
+func Send(address string, contentID int) error {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	req.SetBody(makeRequest(contentID))
+	request := makeRequest(contentID)
+	body, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	req.SetBody(body)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType("application/json")
 	req.SetRequestURI(address)
 
 	if err := client.Do(req, nil); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
-func makeRequest(contentID int) []byte {
+func makeRequest(contentID int) Request {
 	var request Request
 	request.Text = "hello world"
 	request.ContentID = contentID
 	request.ClientID = getClientID()
 	request.Timestamp = getMillisecondTimestamp()
-
-	body, err := json.Marshal(request)
-	if err != nil {
-		log.Fatalf("error when parsing request %v", err)
-	}
-	return body
+	return request
 }
 
 // returns a random number between 1 and maxClientID
