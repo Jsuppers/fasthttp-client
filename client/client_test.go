@@ -18,16 +18,18 @@ func TestSend(t *testing.T) {
 		},
 	}
 	go s.Serve(ln) //nolint:errcheck
-	client = &fasthttp.Client{
+	memClient := &fasthttp.Client{
 		Dial: func(addr string) (net.Conn, error) {
 			return ln.Dial()
 		},
 	}
 	defer func() {
-		client = &fasthttp.Client{}
+		memClient = &fasthttp.Client{}
 	}()
 
-	Send("http://make.fasthttp.great?again", 1000)
+	c := client{client: memClient, maxClientID: 1, address: "http://make.fasthttp.great?again"}
+
+	c.Send(1)
 
 	// give some time for the server to receive the request
 	time.Sleep(100 * time.Millisecond)

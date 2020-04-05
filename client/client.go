@@ -2,30 +2,61 @@ package client
 
 import (
 	"encoding/json"
+	"log"
 	"math/rand"
 	"time"
 
 	"github.com/valyala/fasthttp"
 )
 
-var (
-	maxClientID = 10
-	client      = &fasthttp.Client{}
-)
+const defaultRetryDuration = 1 * time.Second
 
-type Request struct {
+type Client interface {
+	Send(amount int)
+}
+
+type client struct {
+	client        *fasthttp.Client
+	address       string
+	maxClientID   int
+	retryDuration time.Duration
+}
+
+type request struct {
 	Text      string `json:"text"`
 	ContentID int    `json:"content_id"`
 	ClientID  int    `json:"client_id"`
 	Timestamp int64  `json:"timestamp"`
 }
 
-func Send(address string, contentID int) error {
+func New(address string, maxClientID int) Client {
+	c := &client{}
+	c.client = &fasthttp.Client{}
+	c.address = address
+	c.maxClientID = maxClientID
+	c.retryDuration = defaultRetryDuration
+	return c
+}
+
+func (c *client) Send(amount int) {
+	log.Printf("Sending %d messages to %s", amount, c.address)
+	for i := 1; i <= amount; {
+		err := c.send(i)
+		if err != nil {
+			log.Println("Error when sending request: ", err)
+			log.Println("Retrying in: ", c.retryDuration)
+			time.Sleep(c.retryDuration)
+			continue
+		}
+		i++
+	}
+}
+
+func (c *client) send(contentID int) error {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	request := makeRequest(contentID)
-	body, err := json.Marshal(request)
+	body, err := json.Marshal(c.makeRequest(contentID))
 	if err != nil {
 		return err
 	}
@@ -33,27 +64,27 @@ func Send(address string, contentID int) error {
 	req.SetBody(body)
 	req.Header.SetMethod("POST")
 	req.Header.SetContentType("application/json")
-	req.SetRequestURI(address)
+	req.SetRequestURI(c.address)
 
-	if err := client.Do(req, nil); err != nil {
+	if err := c.client.Do(req, nil); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func makeRequest(contentID int) Request {
-	var request Request
-	request.Text = "hello world"
-	request.ContentID = contentID
-	request.ClientID = getClientID()
-	request.Timestamp = getMillisecondTimestamp()
-	return request
+func (c *client) makeRequest(contentID int) request {
+	var req request
+	req.Text = "hello world"
+	req.ContentID = contentID
+	req.ClientID = c.getClientID()
+	req.Timestamp = getMillisecondTimestamp()
+	return req
 }
 
 // returns a random number between 1 and maxClientID
-func getClientID() int {
-	return rand.Intn(maxClientID) + 1
+func (c *client) getClientID() int {
+	return rand.Intn(c.maxClientID) + 1
 }
 
 // returns current time in a millisecond precision timestamp
