@@ -4,12 +4,14 @@ PROJECT_NAME := "fasthttp-client"
 
 all: build coverage lint
 
-generate:
-	@go get -v -d ./...
-	go generate ./...
+dep:
+	go get -v -d ./...
 
-build:
-	CGO_ENABLED=0 go build -o ./bin/${PROJECT_NAME} .
+generate: dep
+	@go generate ./...
+
+build: generate
+	CGO_ENABLED=0 go build -ldflags '-w -s' -a -installsuffix cgo -o ./bin/${PROJECT_NAME}
 
 lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.24.0
