@@ -9,6 +9,9 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// extraction of json marshaller to allow for testing
+var jsonMarshal = json.Marshal
+
 type Client interface {
 	SendMessages(amount int)
 }
@@ -28,12 +31,12 @@ type request struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
-func New(address string, maxClientID int, defaultRetryDuration time.Duration, measureMessages int) Client {
+func New(address string, maxClientID int, retryDuration time.Duration, measureMessages int) Client {
 	c := &client{}
 	c.client = &fasthttp.Client{}
 	c.address = address
 	c.maxClientID = maxClientID
-	c.retryDuration = defaultRetryDuration
+	c.retryDuration = retryDuration
 	c.measureMessages = measureMessages
 	return c
 }
@@ -62,7 +65,7 @@ func (c *client) sendMessage(contentID int) error {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	body, err := json.Marshal(c.makeRequest(contentID))
+	body, err := jsonMarshal(c.makeRequest(contentID))
 	if err != nil {
 		return err
 	}

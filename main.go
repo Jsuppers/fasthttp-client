@@ -11,7 +11,7 @@ const (
 	messagesToSend       = 1000 * 1000 * 1000 // one billion
 	measureDuration      = 10000              // ten thousand
 	maxClientID          = 10
-	defaultServerIP      = "http://localhost:8080"
+	defaultServerIP      = "http://172.17.0.1:8080"
 	defaultRetryDuration = 1 * time.Second
 )
 
