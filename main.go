@@ -4,12 +4,15 @@ import (
 	"fasthttp-client/client"
 	"fmt"
 	"os"
+	"time"
 )
 
 const (
-	billion         = 1000 * 1000 * 1000
-	maxClientID     = 10
-	defaultServerIP = "http://172.17.0.1:8080"
+	messagesToSend       = 1000 * 1000 * 1000 // one billion
+	measureDuration      = 10000              // ten thousand
+	maxClientID          = 10
+	defaultServerIP      = "http://localhost:8080"
+	defaultRetryDuration = 1 * time.Second
 )
 
 func main() {
@@ -19,6 +22,6 @@ func main() {
 		address = defaultServerIP
 	}
 
-	sender := client.New(address, maxClientID)
-	sender.Send(billion)
+	sender := client.New(address, maxClientID, defaultRetryDuration, measureDuration)
+	sender.SendMessages(messagesToSend)
 }

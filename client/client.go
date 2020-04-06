@@ -9,17 +9,16 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-const defaultRetryDuration = 1 * time.Second
-
 type Client interface {
-	Send(amount int)
+	SendMessages(amount int)
 }
 
 type client struct {
-	client        *fasthttp.Client
-	address       string
-	maxClientID   int
-	retryDuration time.Duration
+	client          *fasthttp.Client
+	address         string
+	maxClientID     int
+	retryDuration   time.Duration
+	measureMessages int
 }
 
 type request struct {
@@ -29,30 +28,37 @@ type request struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
-func New(address string, maxClientID int) Client {
+func New(address string, maxClientID int, defaultRetryDuration time.Duration, measureMessages int) Client {
 	c := &client{}
 	c.client = &fasthttp.Client{}
 	c.address = address
 	c.maxClientID = maxClientID
 	c.retryDuration = defaultRetryDuration
+	c.measureMessages = measureMessages
 	return c
 }
 
-func (c *client) Send(amount int) {
+func (c *client) SendMessages(amount int) {
 	log.Printf("Sending %d messages to %s", amount, c.address)
-	for i := 1; i <= amount; {
-		err := c.send(i)
-		if err != nil {
-			log.Println("Error when sending request: ", err)
-			log.Println("Retrying in: ", c.retryDuration)
-			time.Sleep(c.retryDuration)
-			continue
+	for j := 1; j <= (amount / c.measureMessages); j++ {
+		start := time.Now()
+		for i := j; i <= c.measureMessages; {
+			err := c.sendMessage(i)
+			if err != nil {
+				log.Println("Error when sending request: ", err)
+				log.Println("Retrying in: ", c.retryDuration)
+				time.Sleep(c.retryDuration)
+				continue
+			}
+			i++
 		}
-		i++
+		elapsed := time.Since(start)
+		remaining := amount - (j * c.measureMessages)
+		log.Printf("Sent %d messages in %s, %d remaining", c.measureMessages, elapsed, remaining)
 	}
 }
 
-func (c *client) send(contentID int) error {
+func (c *client) sendMessage(contentID int) error {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 

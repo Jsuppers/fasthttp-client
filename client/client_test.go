@@ -27,9 +27,9 @@ func TestSend(t *testing.T) {
 		memClient = &fasthttp.Client{}
 	}()
 
-	c := client{client: memClient, maxClientID: 1, address: "http://make.fasthttp.great?again"}
+	c := client{client: memClient, maxClientID: 1, address: "http://make.fasthttp.great?again", measureMessages: 1}
 
-	c.Send(1)
+	c.SendMessages(1)
 
 	// give some time for the server to receive the request
 	time.Sleep(100 * time.Millisecond)
