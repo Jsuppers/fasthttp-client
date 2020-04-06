@@ -8,9 +8,9 @@ fasthttp-client is a service which sends one billion json messages to an endpoin
 ```
 {
     "text": "hello world", 
-    "content_id": x, // counter from 1 to 1 billion
-    "client_id":y, // random number between 1 and 10
-    "timestamp": now  // millisecond precision timestamp
+    "content_id": x, 
+    "client_id":y,
+    "timestamp": now
 }
 ```
 where 
