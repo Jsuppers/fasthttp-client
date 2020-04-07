@@ -44,8 +44,10 @@ func New(address string, maxClientID int, retryDuration time.Duration, measureMe
 func (c *client) SendMessages(amount int) {
 	log.Printf("Sending %d messages to %s", amount, c.address)
 	for j := 1; j <= (amount / c.measureMessages); j++ {
-		start := time.Now()
-		for i := j; i <= c.measureMessages; {
+		begin := time.Now()
+		start := j * c.measureMessages
+		end := start + c.measureMessages
+		for i := start; i <= end; {
 			err := c.sendMessage(i)
 			if err != nil {
 				log.Println("Error when sending request: ", err)
@@ -55,7 +57,7 @@ func (c *client) SendMessages(amount int) {
 			}
 			i++
 		}
-		elapsed := time.Since(start)
+		elapsed := time.Since(begin)
 		remaining := amount - (j * c.measureMessages)
 		log.Printf("Sent %d messages in %s, %d remaining", c.measureMessages, elapsed, remaining)
 	}
