@@ -24,7 +24,7 @@ where
     docker build -t fasthttp-client .
     docker run --rm -it fasthttp-client
 ```
-This will starting sending messages to http://172.17.0.1:8080, which is the default Gateway for Docker, meaning it will perform a DNS lookup for each request. It is recommended to set the server's address directly e.g.
+**Note** This will starting sending messages to http://172.17.0.1:8080, which is the default Gateway for Docker, meaning it will perform a DNS lookup for each request. It is recommended to set the server's address directly e.g.
 ```
-    docker run --rm -it --env SERVER_ADDRESS=http://172.17.0.2.:8080 fasthttp-client
+    docker run --rm -it --env SERVER_ADDRESS="http://172.17.0.2:8080" fasthttp-client
 ```
