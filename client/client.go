@@ -1,16 +1,20 @@
 package client
 
 import (
-	"encoding/json"
 	"log"
 	"math/rand"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/valyala/fasthttp"
 )
 
-// extraction of json marshaller to allow for testing
-var jsonMarshal = json.Marshal
+var (
+	// A high-performance 100% compatible drop-in replacement of "encoding/json"
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
+	// extraction of json marshaller to allow for testing
+	jsonMarshal = json.Marshal
+)
 
 type Client interface {
 	SendMessages(amount int)
